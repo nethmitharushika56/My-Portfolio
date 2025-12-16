@@ -7,31 +7,8 @@ import { SectionType } from '../types';
 import { useSpring, animated } from '@react-spring/three';
 
 // Fix for missing R3F types in JSX
-// Explicitly augmenting the interface to resolve "Property does not exist" errors
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      group: any;
-      mesh: any;
-      capsuleGeometry: any;
-      meshStandardMaterial: any;
-      boxGeometry: any;
-      cylinderGeometry: any;
-      sphereGeometry: any;
-      torusGeometry: any;
-      torusKnotGeometry: any;
-      octahedronGeometry: any;
-      dodecahedronGeometry: any;
-      icosahedronGeometry: any;
-      coneGeometry: any;
-      ambientLight: any;
-      pointLight: any;
-      spotLight: any;
-      color: any;
-    }
-  }
-}
-
+// We use declare global to augment the JSX namespace safely without overwriting React's core definitions.
+// This allows standard HTML tags (div, span, etc.) to coexist with Three.js elements.
 declare global {
   namespace JSX {
     interface IntrinsicElements {
