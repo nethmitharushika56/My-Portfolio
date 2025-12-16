@@ -1,4 +1,4 @@
-# Lumina - 3D Interactive Portfolio
+# 3D Interactive Portfolio
 
 A modern, immersive 3D portfolio built with React, Three.js, and the Google Gemini API. This project features a unique navigation experience using floating 3D geometry, a responsive glassmorphism UI, and an intelligent AI assistant capable of answering questions about the developer.
 
