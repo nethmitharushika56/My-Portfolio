@@ -11,11 +11,11 @@ export const PERSONAL_INFO = {
 With growing experience in the computing domain, I enjoy exploring areas such as software development, cloud computing⁩, and emerging technologies. I’m constantly learning, building, and challenging myself to create meaningful solutions.
 
 I’m excited to connect with industry professionals, collaborate on impactful tech projects, and explore opportunities that support my growth in the engineering and technology sector.`,
-  email: "alex@example.com",
+  email: "gamagetharushy@gmail.com",
   socials: {
-    github: "github.com/alexdev",
-    linkedin: "linkedin.com/in/alexdev",
-    twitter: "twitter.com/alexdev"
+    github: "github.com/nethmitharushika56",
+    linkedin: "www.linkedin.com/in/nethmitharushika56",
+    twitter: "twitter.com"
   }
 };
 
