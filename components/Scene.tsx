@@ -12,6 +12,7 @@ import { useSpring, animated } from '@react-spring/three';
 declare global {
   namespace JSX {
     interface IntrinsicElements {
+      // Three.js elements
       group: any;
       mesh: any;
       capsuleGeometry: any;
@@ -29,6 +30,29 @@ declare global {
       pointLight: any;
       spotLight: any;
       color: any;
+
+      // HTML elements
+      div: any;
+      span: any;
+      p: any;
+      a: any;
+      img: any;
+      button: any;
+      input: any;
+      h1: any;
+      h2: any;
+      h3: any;
+      h4: any;
+      h5: any;
+      h6: any;
+      ul: any;
+      li: any;
+      form: any;
+      label: any;
+      section: any;
+      header: any;
+      footer: any;
+      nav: any;
     }
   }
 }
@@ -38,10 +62,16 @@ interface SceneProps {
   onSectionChange: (section: SectionType) => void;
 }
 
+// Create an animated version of the material to support spring animations on props
+const AnimatedMeshDistortMaterial = animated(MeshDistortMaterial);
+
 // --- Office Casual Girl Avatar Component ---
 const CuteGirlAvatar = () => {
   const group = useRef<THREE.Group>(null);
   const headRef = useRef<THREE.Group>(null);
+  const hairRef = useRef<THREE.Group>(null);
+  
+  // Face Refs
   const leftEyeRef = useRef<THREE.Mesh>(null);
   const rightEyeRef = useRef<THREE.Mesh>(null);
   const leftEyebrowRef = useRef<THREE.Mesh>(null);
@@ -64,35 +94,59 @@ const CuteGirlAvatar = () => {
 
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
+    const { x, y } = mouse;
 
-    // --- Head Tracking & Idle Animation ---
+    // --- 1. Head Tracking & Dynamics ---
     if (headRef.current) {
-      // Look at mouse with smoothing
-      const targetRotX = -mouse.y * 0.25; 
-      const targetRotY = mouse.x * 0.4;
+      // Target rotations based on mouse
+      // Up/Down (inverted Y), Left/Right
+      const targetHeadX = -y * 0.5; 
+      const targetHeadY = x * 0.7;
+      // Tilt head towards the mouse (cute effect)
+      const targetHeadZ = -x * 0.15; 
       
-      // Add subtle idle head bob/weave
+      // Add subtle idle head bob/weave noise
       const idleX = Math.sin(t * 1.5) * 0.05;
-      const idleY = Math.cos(t * 1) * 0.05;
+      const idleY = Math.cos(t * 1.1) * 0.05;
 
-      headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, targetRotX + idleX, delta * 4);
-      headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, targetRotY + idleY, delta * 4);
+      // Smoothly interpolate current rotation to target
+      headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, targetHeadX + idleX, delta * 6);
+      headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, targetHeadY + idleY, delta * 6);
+      headRef.current.rotation.z = THREE.MathUtils.lerp(headRef.current.rotation.z, targetHeadZ, delta * 6);
     }
 
-    // --- Body Sway & Breathing ---
+    // --- 2. Hair Physics (Secondary Motion) ---
+    if (hairRef.current && headRef.current) {
+       // Hair lags slightly behind head movement and sways in "wind"
+       const hairLag = headRef.current.rotation.y * -0.15;
+       const windSway = Math.sin(t * 2.5) * 0.03;
+       
+       hairRef.current.rotation.y = THREE.MathUtils.lerp(hairRef.current.rotation.y, hairLag + windSway, delta * 4);
+       hairRef.current.rotation.z = Math.sin(t * 3) * 0.01; // subtle vertical bounce
+    }
+
+    // --- 3. Body Movement & Breathing ---
     if (group.current) {
-      // Breathing (Up/Down)
-      group.current.position.y = -2.6 + Math.sin(t * 2) * 0.04;
-      // Swaying (Rotation Z) - shifting weight
-      group.current.rotation.z = Math.sin(t * 0.8) * 0.03;
-      // Subtle Rotation Y - turning body slightly
-      group.current.rotation.y = Math.sin(t * 0.5) * 0.02;
+      // Breathing: Heaving motion (Y axis) and subtle scale
+      const breath = Math.sin(t * 2.2);
+      group.current.position.y = -2.6 + breath * 0.04;
+      
+      // Dynamic Leaning: Lean body towards mouse
+      const leanZ = x * 0.08;
+      const leanX = -y * 0.05;
+      
+      // Idle Sway: Shifting weight
+      const idleSway = Math.sin(t * 0.8) * 0.04;
+
+      group.current.rotation.z = THREE.MathUtils.lerp(group.current.rotation.z, leanZ + idleSway, delta * 3);
+      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, leanX, delta * 3);
+      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, x * 0.2, delta * 3); // Turn body slightly
     }
 
-    // --- Blinking Logic ---
+    // --- 4. Eye Mechanics (Blinking & Tracking) ---
+    // Blink Logic
     if (t > blinkState.current.nextBlink) {
         if (!blinkState.current.isBlinking) {
-            // Start blink
             blinkState.current.isBlinking = true;
         } else {
             // End blink (blink lasts ~0.15s)
@@ -103,32 +157,52 @@ const CuteGirlAvatar = () => {
             }
         }
     }
-
     const targetScaleY = blinkState.current.isBlinking ? 0.1 : 1;
+
+    // Eye Tracking: Eyes move inside sockets towards interest point
+    // We offset the eye mesh position locally
+    const eyeTrackX = x * 0.08;
+    const eyeTrackY = y * 0.08;
+
     if (leftEyeRef.current) {
         leftEyeRef.current.scale.y = THREE.MathUtils.lerp(leftEyeRef.current.scale.y, targetScaleY, delta * 30);
+        leftEyeRef.current.position.x = THREE.MathUtils.lerp(leftEyeRef.current.position.x, -0.12 + eyeTrackX, delta * 15);
+        leftEyeRef.current.position.y = THREE.MathUtils.lerp(leftEyeRef.current.position.y, eyeTrackY, delta * 15);
     }
     if (rightEyeRef.current) {
         rightEyeRef.current.scale.y = THREE.MathUtils.lerp(rightEyeRef.current.scale.y, targetScaleY, delta * 30);
+        rightEyeRef.current.position.x = THREE.MathUtils.lerp(rightEyeRef.current.position.x, 0.12 + eyeTrackX, delta * 15);
+        rightEyeRef.current.position.y = THREE.MathUtils.lerp(rightEyeRef.current.position.y, eyeTrackY, delta * 15);
     }
 
-    // --- Facial Expressions (Eyebrows & Mouth) ---
+    // --- 5. Facial Expressions ---
+    // Eyebrows: React to vertical mouse position (Up=Surprise, Down=Focus)
     if (leftEyebrowRef.current && rightEyebrowRef.current) {
-        // Raise eyebrows when mouse is high (curiosity/surprise)
-        const browOffset = Math.max(0, mouse.y * 0.03);
-        const targetBrowY = 0.14 + browOffset;
-        
-        leftEyebrowRef.current.position.y = THREE.MathUtils.lerp(leftEyebrowRef.current.position.y, targetBrowY, delta * 5);
-        rightEyebrowRef.current.position.y = THREE.MathUtils.lerp(rightEyebrowRef.current.position.y, targetBrowY, delta * 5);
+        const surpriseFactor = Math.max(0, y);
+        const focusFactor = Math.min(0, y);
+
+        const browY = 0.14 + (surpriseFactor * 0.08) + (focusFactor * 0.02);
+        // Rotate brows: Inner up for surprise, inner down for focus
+        const browRot = (surpriseFactor * 0.3) + (focusFactor * 0.2); 
+
+        leftEyebrowRef.current.position.y = THREE.MathUtils.lerp(leftEyebrowRef.current.position.y, browY, delta * 8);
+        leftEyebrowRef.current.rotation.z = THREE.MathUtils.lerp(leftEyebrowRef.current.rotation.z, 0.1 - browRot, delta * 8);
+
+        rightEyebrowRef.current.position.y = THREE.MathUtils.lerp(rightEyebrowRef.current.position.y, browY, delta * 8);
+        rightEyebrowRef.current.rotation.z = THREE.MathUtils.lerp(rightEyebrowRef.current.rotation.z, -0.1 + browRot, delta * 8);
     }
 
+    // Mouth: Smile widens when looking at center or up, tightens when looking down
     if (mouthRef.current) {
-        // Subtle smile adjustment based on time and mouse horizontal position
-        const smileWiden = Math.abs(mouse.x) * 0.1;
-        const idleSmile = Math.sin(t * 2) * 0.05;
-        const targetScaleX = 1 + smileWiden + idleSmile;
+        // Base smile + mouse interaction
+        const excitement = Math.max(0, y) * 0.3; // Looking up = happy/excited
+        const width = Math.abs(x) * 0.2; // Widen when looking sideways
         
-        mouthRef.current.scale.x = THREE.MathUtils.lerp(mouthRef.current.scale.x, targetScaleX, delta * 5);
+        const targetSmileX = 1 + width + excitement;
+        const targetSmileY = 1 + excitement * 1.5; // Open mouth slightly if excited
+
+        mouthRef.current.scale.x = THREE.MathUtils.lerp(mouthRef.current.scale.x, targetSmileX, delta * 5);
+        mouthRef.current.scale.y = THREE.MathUtils.lerp(mouthRef.current.scale.y, targetSmileY, delta * 5);
     }
   });
 
@@ -270,7 +344,7 @@ const CuteGirlAvatar = () => {
         </mesh>
 
         {/* --- HAIR (Brown Wavy) --- */}
-        <group>
+        <group ref={hairRef}>
             {/* Main scalp hair */}
             <mesh position={[0, 0.05, -0.05]}>
                <sphereGeometry args={[0.4, 32, 32]} />
@@ -317,6 +391,7 @@ const CuteGirlAvatar = () => {
         <group position={[0, -0.05, 0.32]}>
            {/* Eyes */}
            <group position={[0, 0.05, 0]}>
+             {/* Left Eye */}
              <mesh ref={leftEyeRef} position={[-0.12, 0, 0]} rotation={[0, 0, 0]}>
                 <sphereGeometry args={[0.06, 16, 16]} />
                 <meshStandardMaterial color="#222" />
@@ -325,6 +400,7 @@ const CuteGirlAvatar = () => {
                     <meshStandardMaterial color="white" emissive="white" emissiveIntensity={0.8} />
                 </mesh>
              </mesh>
+             {/* Right Eye */}
              <mesh ref={rightEyeRef} position={[0.12, 0, 0]} rotation={[0, 0, 0]}>
                 <sphereGeometry args={[0.06, 16, 16]} />
                 <meshStandardMaterial color="#222" />
@@ -389,9 +465,11 @@ const InteractiveShape = ({
   
   const isActive = activeSection === section;
 
-  const { scale, dist } = useSpring({
+  // Add glow (emissiveIntensity) to the spring configuration
+  const { scale, dist, glow } = useSpring({
     scale: isActive ? 1.5 : hovered ? 1.1 : 0.8,
     dist: isActive ? 0.6 : 0.2,
+    glow: isActive ? 2.5 : hovered ? 0.5 : 0,
     config: { mass: 1, tension: 170, friction: 26 }
   });
 
@@ -420,12 +498,15 @@ const InteractiveShape = ({
         {geometryType === 'icosahedron' && <icosahedronGeometry args={[0.8]} />}
         {geometryType === 'cone' && <coneGeometry args={[0.7, 1.5, 16]} />}
         
-        <MeshDistortMaterial
+        {/* Use the animated material with emissive properties */}
+        <AnimatedMeshDistortMaterial
           color={color}
           speed={3}
           distort={dist}
           roughness={0.1}
           metalness={0.9}
+          emissive={color}
+          emissiveIntensity={glow}
         />
       </animated.mesh>
     </Float>
