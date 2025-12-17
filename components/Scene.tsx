@@ -39,6 +39,7 @@ declare global {
       img: any;
       button: any;
       input: any;
+      textarea: any;
       h1: any;
       h2: any;
       h3: any;

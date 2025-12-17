@@ -35,6 +35,7 @@ export const SKILLS: Skill[] = [
   { name: "Cloud Computing", category: "Cloud & Tech", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" },
   { name: "Cloud Applications", category: "Cloud & Tech", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg" },
   { name: "Firebase", category: "Cloud & Tech", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" },
+  { name: "Supabase", category: "Cloud & Tech", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/supabase/supabase-original.svg" },
   { name: "Google API", category: "Cloud & Tech", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" },
   { name: "Gemini", category: "Cloud & Tech", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Google_Gemini_logo.svg/512px-Google_Gemini_logo.svg.png" },
   { name: "Cloud Security", category: "Cloud & Tech" },
@@ -45,10 +46,13 @@ export const SKILLS: Skill[] = [
   { name: "Python", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" },
   { name: "Java", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg" },
   { name: "JavaScript", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" },
-  { name: "C#", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" },
+  { name: "React", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" },
+  { name: "Node.js", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" },
+  { name: "C", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg" },
   { name: "C++", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" },
   { name: "Flutter", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg" },
   { name: "HTML5", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" },
+  { name: "CSS3", category: "Development", image: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" },
   { name: "LLMs", category: "Development", image: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" }, // Generic AI/LLM icon
 
   // Design & Tools

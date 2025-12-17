@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PERSONAL_INFO, PROJECTS, SKILLS, VOLUNTEERING, CERTIFICATIONS, SECTION_CONFIG } from '../constants';
 import { SectionType, Skill } from '../types';
-import { Github, Linkedin, Mail, ExternalLink, Code2, User, Briefcase, Zap, MessageSquare, Home, Award, Heart, CheckCircle } from 'lucide-react';
+import { Github, Linkedin, Mail, ExternalLink, Code2, User, Briefcase, Zap, MessageSquare, Home, Award, Heart, CheckCircle, Search, X, Send } from 'lucide-react';
 
 interface UIOverlayProps {
   activeSection: SectionType;
@@ -46,6 +46,11 @@ const Typewriter = ({ text, speed = 50, delay = 500 }: { text: string; speed?: n
 };
 
 const UIOverlay: React.FC<UIOverlayProps> = ({ activeSection, onNavigate }) => {
+  const [projectSearch, setProjectSearch] = useState("");
+  
+  // Feedback state
+  const [feedback, setFeedback] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
   
   const variants = {
     hidden: { opacity: 0, y: 50, filter: 'blur(10px)' },
@@ -75,6 +80,34 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ activeSection, onNavigate }) => {
     acc[skill.category].push(skill);
     return acc;
   }, {} as Record<string, Skill[]>);
+
+  // Filter projects based on search
+  const filteredProjects = PROJECTS.filter(project => {
+    const searchLower = projectSearch.toLowerCase();
+    return (
+      project.title.toLowerCase().includes(searchLower) ||
+      project.description.toLowerCase().includes(searchLower) ||
+      project.techStack.some(tech => tech.toLowerCase().includes(searchLower))
+    );
+  });
+
+  const handleFeedbackSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedback.trim()) return;
+    
+    setFeedbackStatus('sending');
+    
+    // Simulate API call/processing time
+    setTimeout(() => {
+      setFeedbackStatus('sent');
+      setFeedback("");
+      
+      // Reset after showing success message
+      setTimeout(() => {
+        setFeedbackStatus('idle');
+      }, 3000);
+    }, 1500);
+  };
 
   return (
     <div className="fixed inset-0 pointer-events-none z-10 flex flex-col justify-between p-4">
@@ -166,31 +199,67 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ activeSection, onNavigate }) => {
           {/* PROJECTS SECTION */}
           {activeSection === SectionType.PROJECTS && (
             <motion.div key="projects" variants={variants} initial="hidden" animate="visible" exit="exit" className={`${CardClass} pointer-events-auto`}>
-              <h2 className="text-4xl font-bold mb-8 text-emerald-400 font-space">{SECTION_CONFIG.PROJECTS.title}</h2>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <h2 className="text-4xl font-bold text-emerald-400 font-space">{SECTION_CONFIG.PROJECTS.title}</h2>
+                
+                {/* Search Bar */}
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search projects..." 
+                    value={projectSearch}
+                    onChange={(e) => setProjectSearch(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-9 pr-9 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-emerald-400/50 transition-all hover:bg-white/10"
+                  />
+                  {projectSearch && (
+                    <button 
+                      onClick={() => setProjectSearch('')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-3 gap-6">
-                {PROJECTS.map((project) => (
-                  <div key={project.id} className="group bg-white/5 rounded-2xl overflow-hidden hover:bg-white/10 transition-colors border border-white/5 flex flex-col">
-                    <div className="h-40 bg-gray-800 relative overflow-hidden shrink-0">
-                      <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    </div>
-                    <div className="p-5 flex flex-col flex-1">
-                      <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-4 flex-1">{project.description}</p>
-                      <div className="mt-auto">
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {project.techStack.map(tech => (
-                            <span key={tech} className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full border border-emerald-500/20">
-                              {tech}
-                            </span>
-                          ))}
+                {filteredProjects.length > 0 ? (
+                  filteredProjects.map((project) => (
+                    <div key={project.id} className="group bg-white/5 rounded-2xl overflow-hidden hover:bg-white/10 transition-colors border border-white/5 flex flex-col">
+                      <div className="h-40 bg-gray-800 relative overflow-hidden shrink-0">
+                        <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      </div>
+                      <div className="p-5 flex flex-col flex-1">
+                        <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                        <p className="text-sm text-gray-400 mb-4 line-clamp-4 flex-1">{project.description}</p>
+                        <div className="mt-auto">
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {project.techStack.map(tech => (
+                              <span key={tech} className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full border border-emerald-500/20">
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+                          <a href={project.link} className="flex items-center gap-2 text-sm text-white/70 hover:text-emerald-400 transition-colors">
+                            View Project <ExternalLink size={14} />
+                          </a>
                         </div>
-                        <a href={project.link} className="flex items-center gap-2 text-sm text-white/70 hover:text-emerald-400 transition-colors">
-                          View Project <ExternalLink size={14} />
-                        </a>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="col-span-full flex flex-col items-center justify-center py-16 text-white/40">
+                    <Search size={48} className="mb-4 opacity-50" />
+                    <p className="text-lg">No projects found matching "{projectSearch}"</p>
+                    <button 
+                      onClick={() => setProjectSearch('')}
+                      className="mt-4 text-emerald-400 hover:text-emerald-300 text-sm hover:underline"
+                    >
+                      Clear search
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
             </motion.div>
           )}
@@ -282,15 +351,56 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ activeSection, onNavigate }) => {
           {activeSection === SectionType.CONTACT && (
             <motion.div key="contact" variants={variants} initial="hidden" animate="visible" exit="exit" className={`${CardClass} pointer-events-auto max-w-xl text-center`}>
               <h2 className="text-4xl font-bold mb-6 text-rose-400 font-space">{SECTION_CONFIG.CONTACT.title}</h2>
-              <p className="text-gray-300 mb-8">
-                Interested in collaborating on a 3D web experience or have a project in mind? Let's talk.
+              <p className="text-gray-300 mb-8 text-lg">
+                Interested in collaborating with me? Let's talk.
               </p>
               
-              <a href={`mailto:${PERSONAL_INFO.email}`} className="inline-flex items-center gap-3 bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-rose-500/30">
+              <a href={`mailto:${PERSONAL_INFO.email}`} className="inline-flex items-center gap-3 bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-rose-500/30 mb-12">
                 <Mail /> Send Me an Email
               </a>
 
-              <div className="mt-12 pt-8 border-t border-white/10">
+              {/* Feedback Box */}
+              <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-left">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <MessageSquare size={20} className="text-rose-400"/> 
+                  Leave Feedback
+                </h3>
+                {feedbackStatus === 'sent' ? (
+                   <motion.div 
+                     initial={{ opacity: 0, scale: 0.9 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     className="bg-green-500/20 border border-green-500/50 rounded-xl p-4 text-center text-green-200"
+                   >
+                     <CheckCircle className="mx-auto mb-2 text-green-400" size={32} />
+                     <p>Thanks for your feedback!</p>
+                   </motion.div>
+                ) : (
+                  <form onSubmit={handleFeedbackSubmit}>
+                    <textarea 
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      placeholder="Share your thoughts or just say hi..." 
+                      className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-rose-400/50 min-h-[100px] mb-4 resize-none"
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={feedbackStatus === 'sending' || !feedback.trim()}
+                      className="w-full bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {feedbackStatus === 'sending' ? (
+                        <span>Sending...</span>
+                      ) : (
+                        <>
+                          <Send size={16} />
+                          Submit Feedback
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/10">
                 <p className="text-sm text-gray-500">
                   Or ask my AI assistant in the bottom right corner for immediate answers.
                 </p>
